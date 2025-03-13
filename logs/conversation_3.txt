@@ -1,0 +1,322 @@
+ SystemMessage 
+You are an AI agent designed to automate browser tasks. Your goal is to accomplish the ultimate task following the rules.
+
+# Input Format
+Task
+Previous steps
+Current URL
+Open Tabs
+Interactive Elements
+[index]<type>text</type>
+- index: Numeric identifier for interaction
+- type: HTML element type (button, input, etc.)
+- text: Element description
+Example:
+[33]<button>Submit Form</button>
+
+- Only elements with numeric indexes in [] are interactive
+- elements without [] provide only context
+
+# Response Rules
+1. RESPONSE FORMAT: You must ALWAYS respond with valid JSON in this exact format:
+{"current_state": {"evaluation_previous_goal": "Success|Failed|Unknown - Analyze the current elements and the image to check if the previous goals/actions are successful like intended by the task. Mention if something unexpected happened. Shortly state why/why not",
+"memory": "Description of what has been done and what you need to remember. Be very specific. Count here ALWAYS how many times you have done something and how many remain. E.g. 0 out of 10 websites analyzed. Continue with abc and xyz",
+"next_goal": "What needs to be done with the next immediate action"},
+"action":[{"one_action_name": {// action-specific parameter}}, // ... more actions in sequence]}
+
+2. ACTIONS: You can specify multiple actions in the list to be executed in sequence. But always specify only one action name per item. Use maximum {max_actions} actions per sequence.
+Common action sequences:
+- Form filling: [{"input_text": {"index": 1, "text": "username"}}, {"input_text": {"index": 2, "text": "password"}}, {"click_element": {"index": 3}}]
+- Navigation and extraction: [{"go_to_url": {"url": "https://example.com"}}, {"extract_content": {"goal": "extract the names"}}]
+- Actions are executed in the given order
+- If the page changes after an action, the sequence is interrupted and you get the new state.
+- Only provide the action sequence until an action which changes the page state significantly.
+- Try to be efficient, e.g. fill forms at once, or chain actions where nothing changes on the page
+- only use multiple actions if it makes sense.
+
+3. ELEMENT INTERACTION:
+- Only use indexes of the interactive elements
+- Elements marked with "[]Non-interactive text" are non-interactive
+
+4. NAVIGATION & ERROR HANDLING:
+- If no suitable elements exist, use other functions to complete the task
+- If stuck, try alternative approaches - like going back to a previous page, new search, new tab etc.
+- Handle popups/cookies by accepting or closing them
+- Use scroll to find elements you are looking for
+- If you want to research something, open a new tab instead of using the current tab
+- If captcha pops up, try to solve it - else try a different approach
+- If the page is not fully loaded, use wait action
+
+5. TASK COMPLETION:
+- Use the done action as the last action as soon as the ultimate task is complete
+- Dont use "done" before you are done with everything the user asked you, except you reach the last step of max_steps. 
+- If you reach your last step, use the done action even if the task is not fully finished. Provide all the information you have gathered so far. If the ultimate task is completly finished set success to true. If not everything the user asked for is completed set success in done to false!
+- If you have to do something repeatedly for example the task says for "each", or "for all", or "x times", count always inside "memory" how many times you have done it and how many remain. Don't stop until you have completed like the task asked you. Only call done after the last step.
+- Don't hallucinate actions
+- Make sure you include everything you found out for the ultimate task in the done text parameter. Do not just say you are done, but include the requested information of the task. 
+
+6. VISUAL CONTEXT:
+- When an image is provided, use it to understand the page layout
+- Bounding boxes with labels on their top right corner correspond to element indexes
+
+7. Form filling:
+- If you fill an input field and your action sequence is interrupted, most often something changed e.g. suggestions popped up under the field.
+
+8. Long tasks:
+- Keep track of the status and subresults in the memory. 
+
+9. Extraction:
+- If your task is to find information - call extract_content on the specific pages to get and store the information.
+Your responses must be always JSON with the specified format.
+
+ HumanMessage 
+Your ultimate task is: """
+        1. 查找北京到上海的火车票
+        """. If you achieved your ultimate task, stop everything and use the done action in the next step to complete the task. If not, continue as usual.
+
+ HumanMessage 
+Example output:
+
+ AIMessage 
+
+
+ ToolMessage 
+Browser started
+
+ HumanMessage 
+[Your task history memory starts here]
+
+ AIMessage 
+
+
+ ToolMessage 
+
+
+ HumanMessage 
+Action result: 🔗  Navigated to https://www.12306.cn
+
+ HumanMessage 
+[Task history memory ends]
+[Current state starts here]
+The following is one-time information - if you need to remember it write it to memory:
+Current url: https://www.12306.cn/index/
+Available tabs:
+[TabInfo(page_id=0, url='https://www.12306.cn/index/', title='中国铁路12306网站')]
+Interactive elements from top layer of the current page inside the viewport:
+[Start of page]
+[0]<a g_href>中国铁路12306/>
+[1]<input text;搜索车票、餐饮、常旅客、相关规章/>
+[2]<a 点击搜索，搜索结果页面可能超出无障碍服务范围/>
+[3]<a 无障碍/>
+|
+[4]<a 敬老版/>
+|
+[5]<li menuitem>简体中文
+English/>
+[6]<a true>English/>
+|
+[7]<li menuitem>火车票订单
+候补订单
+计次•定期票订单
+约号订单
+电子发票
+本人车票
+我的餐饮•特产
+我的保险
+我的会员
+查看个人信息
+账户安全
+乘车人
+地址管理
+温馨服务查询/>
+[8]<a true;g_href>我的12306/>
+|
+[9]<li menuitem/>
+[10]<a g_href>登录/>
+[11]<a g_href>注册/>
+[12]<li menuitem/>
+[13]<a g_href>首页/>
+[14]<li menuitem>购买
+单程
+往返
+中转换乘
+计次•定期票
+变更
+退票
+改签
+变更到站
+更多
+中铁银通卡
+广九直通车
+国际列车/>
+[15]<a true>车票/>
+[16]<li menuitem>务工人员
+学生团体/>
+[17]<a true>团购服务/>
+[18]<li menuitem>会员管理
+积分账户
+积分兑换
+会员专享
+会员中心/>
+[19]<a true>会员服务/>
+[20]<li menuitem>特殊重点旅客
+便民托运
+约车服务
+车站引导
+遗失物品查找
+动车组介绍
+定制接送
+站车风采/>
+[21]<a true>站车服务/>
+[22]<li menuitem>餐饮•特产
+保险
+雪具快运/>
+[23]<a true>商旅服务/>
+[24]<li menuitem>常见问题
+车票
+购票
+改签
+退票
+更多>>
+旅客须知
+身份核验
+更多>>
+相关章程
+铁路旅客运输规程
+广深港高速铁路跨境旅客运输组织规则
+铁路旅客禁止、限制携带和托运物品目录
+更多>>/>
+[25]<a true>出行指南/>
+[26]<li menuitem>常用查询
+正晚点
+时刻表
+公布票价
+检票口
+起售时间
+天气
+交通查询
+代售点
+客服电话
+列车状态
+最新发布
+信用信息/>
+[27]<a true>信息查询/>
+[28]<a />
+1
+2
+3
+4
+5
+6
+[31]<a 车票/>
+[32]<a 常用查询/>
+[33]<a 订餐/>
+[34]<a 单程/>
+[35]<a 往返/>
+[36]<a 中转换乘/>
+[37]<a 退改签/>
+出发地
+[38]<input text;请输入或选择出发地，按键盘上下键进行选择，按回车键选中/>
+到达地
+[39]<input text;请输入或选择到达地，按键盘上下键进行选择，按回车键选中/>
+出发日期
+[40]<input 请输入日期，例如2021杠01杠01;text/>
+学生
+高铁/动车
+[41]<a 查    询/>
+[42]<a g_href>重点旅客预约/>
+[43]<a g_href>遗失物品查找/>
+[44]<a g_href>约车服务/>
+[45]<a g_href>便民托运/>
+[46]<a g_href>车站引导/>
+[47]<a g_href>站车风采/>
+[48]<a g_href>用户反馈/>
+[49]<a 铁路畅行 惠享出行 尊享体验/>
+[50]<img />
+[51]<a 餐饮·特产 带有温度的旅行配餐/>
+[52]<img />
+[53]<a 铁路保险 用心呵护 放心出行/>
+[54]<img />
+[55]<a 计次订票开售 直刷乘车、出行乐无忧/>
+[56]<img />
+最新发布
+常见问题
+信用信息
+[57]<a 公 告/>
+2024-12-11
+[58]<a 关于铁路客运推广使用全面数字化的电子发票的公告/>
+2024-11-07
+[59]<a 关于优化铁路车票改签规则的公告/>
+2024-01-11
+[60]<a 外国护照身份核验使用说明/>
+2023-12-13
+[61]<a 铁路旅客禁止、限制携带和托运物品目录/>
+2023-11-30
+[62]<a 候补购票操作说明/>
+2024-04-19
+[63]<a 公 告/>
+2022-12-22
+[64]<a 关于调整互联网、电话订票起售时间的公告/>
+2025-03-06
+[65]<a 中国铁路上海局集团有限公司关于2025年3月14日-2025年3月29日增开部分旅客列车的公告/>
+2025-03-12
+[66]<a 中国铁路上海局集团有限公司关于2025年3月14日-2025年3月17日增开部分旅客列车的公告/>
+2025-03-11
+[67]<a g_href>更多>/>
+友情链接
+[68]<li menuitem/>
+[69]<a 中国国家铁路集团有限公司;g_href/>
+[70]<img />
+[71]<li menuitem/>
+[72]<a 中国铁路财产保险自保有限公司;g_href/>
+[73]<img />
+[74]<li menuitem/>
+[75]<a 中国铁路95306网;g_href/>
+[76]<img />
+[77]<li menuitem/>
+[78]<a 中铁快运股份有限公司;g_href/>
+[79]<img />
+中国铁路官方微信
+[80]<img />
+中国铁路官方微博
+[81]<img />
+12306 公众号
+[82]<img />
+铁路12306
+[83]<img />
+官方APP下载，目前铁路未授权其他网站或APP开展类似服务内容，敬请广大用户注意。
+[84]<a 最新发布/>
+[85]<a g_href>联系客服/>
+[86]<a APP下载/>
+[87]<a 关闭/>
+新窗口打开无障碍说明页面,按Alt加波浪键打开导盲模式
+... 613 pixels below - scroll or extract content to see more ...
+Current step: 2/3Current date and time: 2025-03-13 10:11
+
+ RESPONSE
+{
+  "current_state": {
+    "evaluation_previous_goal": "Success - Navigated to the 12306 website",
+    "memory": "Starting with the new task. I have completed 1/1 steps.",
+    "next_goal": "Input departure and arrival cities and search for train tickets"
+  },
+  "action": [
+    {
+      "input_text": {
+        "index": 38,
+        "text": "\u5317\u4eac"
+      }
+    },
+    {
+      "input_text": {
+        "index": 39,
+        "text": "\u4e0a\u6d77"
+      }
+    },
+    {
+      "click_element": {
+        "index": 41
+      }
+    }
+  ]
+}

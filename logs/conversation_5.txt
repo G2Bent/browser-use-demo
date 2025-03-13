@@ -1,0 +1,258 @@
+ SystemMessage 
+You are an AI agent designed to automate browser tasks. Your goal is to accomplish the ultimate task following the rules.
+
+# Input Format
+Task
+Previous steps
+Current URL
+Open Tabs
+Interactive Elements
+[index]<type>text</type>
+- index: Numeric identifier for interaction
+- type: HTML element type (button, input, etc.)
+- text: Element description
+Example:
+[33]<button>Submit Form</button>
+
+- Only elements with numeric indexes in [] are interactive
+- elements without [] provide only context
+
+# Response Rules
+1. RESPONSE FORMAT: You must ALWAYS respond with valid JSON in this exact format:
+{"current_state": {"evaluation_previous_goal": "Success|Failed|Unknown - Analyze the current elements and the image to check if the previous goals/actions are successful like intended by the task. Mention if something unexpected happened. Shortly state why/why not",
+"memory": "Description of what has been done and what you need to remember. Be very specific. Count here ALWAYS how many times you have done something and how many remain. E.g. 0 out of 10 websites analyzed. Continue with abc and xyz",
+"next_goal": "What needs to be done with the next immediate action"},
+"action":[{"one_action_name": {// action-specific parameter}}, // ... more actions in sequence]}
+
+2. ACTIONS: You can specify multiple actions in the list to be executed in sequence. But always specify only one action name per item. Use maximum {max_actions} actions per sequence.
+Common action sequences:
+- Form filling: [{"input_text": {"index": 1, "text": "username"}}, {"input_text": {"index": 2, "text": "password"}}, {"click_element": {"index": 3}}]
+- Navigation and extraction: [{"go_to_url": {"url": "https://example.com"}}, {"extract_content": {"goal": "extract the names"}}]
+- Actions are executed in the given order
+- If the page changes after an action, the sequence is interrupted and you get the new state.
+- Only provide the action sequence until an action which changes the page state significantly.
+- Try to be efficient, e.g. fill forms at once, or chain actions where nothing changes on the page
+- only use multiple actions if it makes sense.
+
+3. ELEMENT INTERACTION:
+- Only use indexes of the interactive elements
+- Elements marked with "[]Non-interactive text" are non-interactive
+
+4. NAVIGATION & ERROR HANDLING:
+- If no suitable elements exist, use other functions to complete the task
+- If stuck, try alternative approaches - like going back to a previous page, new search, new tab etc.
+- Handle popups/cookies by accepting or closing them
+- Use scroll to find elements you are looking for
+- If you want to research something, open a new tab instead of using the current tab
+- If captcha pops up, try to solve it - else try a different approach
+- If the page is not fully loaded, use wait action
+
+5. TASK COMPLETION:
+- Use the done action as the last action as soon as the ultimate task is complete
+- Dont use "done" before you are done with everything the user asked you, except you reach the last step of max_steps. 
+- If you reach your last step, use the done action even if the task is not fully finished. Provide all the information you have gathered so far. If the ultimate task is completly finished set success to true. If not everything the user asked for is completed set success in done to false!
+- If you have to do something repeatedly for example the task says for "each", or "for all", or "x times", count always inside "memory" how many times you have done it and how many remain. Don't stop until you have completed like the task asked you. Only call done after the last step.
+- Don't hallucinate actions
+- Make sure you include everything you found out for the ultimate task in the done text parameter. Do not just say you are done, but include the requested information of the task. 
+
+6. VISUAL CONTEXT:
+- When an image is provided, use it to understand the page layout
+- Bounding boxes with labels on their top right corner correspond to element indexes
+
+7. Form filling:
+- If you fill an input field and your action sequence is interrupted, most often something changed e.g. suggestions popped up under the field.
+
+8. Long tasks:
+- Keep track of the status and subresults in the memory. 
+
+9. Extraction:
+- If your task is to find information - call extract_content on the specific pages to get and store the information.
+Your responses must be always JSON with the specified format.
+
+ HumanMessage 
+Your ultimate task is: """
+        1. 访问 Google 首页 https://www.google.com
+        2. 查找北京到上海的火车票
+        """. If you achieved your ultimate task, stop everything and use the done action in the next step to complete the task. If not, continue as usual.
+
+ HumanMessage 
+Example output:
+
+ AIMessage 
+
+
+ ToolMessage 
+Browser started
+
+ HumanMessage 
+[Your task history memory starts here]
+
+ AIMessage 
+
+
+ ToolMessage 
+
+
+ HumanMessage 
+Action result: 🔗  Navigated to https://www.google.com
+
+ AIMessage 
+
+
+ ToolMessage 
+
+
+ HumanMessage 
+Action result: ⌨️  Input 北京到上海的火车票 into index 4
+
+ HumanMessage 
+Action result: Something new appeared after action 1 / 2
+
+ AIMessage 
+
+
+ ToolMessage 
+
+
+ HumanMessage 
+Action result: 🖱️  Clicked button with index 10:
+
+ HumanMessage 
+[Task history memory ends]
+[Current state starts here]
+The following is one-time information - if you need to remember it write it to memory:
+Current url: https://www.google.com.hk/search?q=%E5%8C%97%E4%BA%AC%E5%88%B0%E4%B8%8A%E6%B5%B7%E7%81%AB%E8%BD%A6%E7%A5%A8&newwindow=1&sca_esv=cc2a4126488dadb8&source=hp&ei=ijfSZ6iAG9rn2roPreWvgQc&iflsig=ACkRmUkAAAAAZ9JFmtkkgsmv9q6D_XKzWXOWqCjonkAI&oq=%E5%8C%97%E4%BA%AC%E5%88%B0%E4%B8%8A%E6%B5%B7%E7%9A%84%E7%81%AB%E8%BD%A6%E7%A5%A8&gs_lp=Egdnd3Mtd2l6IhvljJfkuqzliLDkuIrmtbfnmoTngavovabnpagqAggBMggQABiABBiiBDIIEAAYgAQYogQyCBAAGIAEGKIEMggQABiABBiiBDIIEAAYgAQYogRIvWdQAFgAcAB4AJABAJgBV6ABV6oBATG4AQHIAQD4AQGYAgGgAluYAwCSBwExoAeJAg&sclient=gws-wiz&sei=pjfSZ9WdN8v51e8P8ouBsAs
+Available tabs:
+[TabInfo(page_id=0, url='https://www.google.com.hk/search?q=%E5%8C%97%E4%BA%AC%E5%88%B0%E4%B8%8A%E6%B5%B7%E7%81%AB%E8%BD%A6%E7%A5%A8&newwindow=1&sca_esv=cc2a4126488dadb8&source=hp&ei=ijfSZ6iAG9rn2roPreWvgQc&iflsig=ACkRmUkAAAAAZ9JFmtkkgsmv9q6D_XKzWXOWqCjonkAI&oq=%E5%8C%97%E4%BA%AC%E5%88%B0%E4%B8%8A%E6%B5%B7%E7%9A%84%E7%81%AB%E8%BD%A6%E7%A5%A8&gs_lp=Egdnd3Mtd2l6IhvljJfkuqzliLDkuIrmtbfnmoTngavovabnpagqAggBMggQABiABBiiBDIIEAAYgAQYogQyCBAAGIAEGKIEMggQABiABBiiBDIIEAAYgAQYogRIvWdQAFgAcAB4AJABAJgBV6ABV6oBATG4AQHIAQD4AQGYAgGgAluYAwCSBwExoAeJAg&sclient=gws-wiz&sei=pjfSZ9WdN8v51e8P8ouBsAs', title='北京到上海火车票 - Google 搜索')]
+Interactive elements from top layer of the current page inside the viewport:
+[Start of page]
+无障碍功能链接
+跳到主要内容
+无障碍功能帮助
+无障碍功能反馈
+[0]<a Google 首页/>
+[1]<textarea ;combobox;搜索;q;false>北京到上海火车票/>
+[2]<div button;清除/>
+[3]<div button;按语音搜索/>
+[4]<div 按图搜索;button/>
+[5]<button submit;搜索/>
+[6]<div button;设置>快捷设置/>
+[7]<a button;Google 应用;false/>
+[8]<a 登录/>
+过滤条件和主题
+[9]<a link>全部/>
+[10]<a link>图片/>
+[11]<a link>新闻/>
+[12]<a link>视频/>
+[13]<a link>短视频/>
+[14]<a link>网页/>
+[15]<a link>图书/>
+[16]<div button;false>更多/>
+[17]<div button;false>工具/>
+广告
+赞助商广告
+[18]<a 北京南去上海高鐵訂票、票價及時間表 | Trip.com
+Trip.com
+https://hk.trip.com/>
+[19]<img />
+[20]<div button;为什么会显示该广告？/>
+搶先喺app
+到
+預購高鐵車飛。出Trip貪快搭高鐵 Trip.com一app過。乘高鐵平遊：安全、方便...
+搜索结果
+[21]<a 北京到上海火车票查询
+携程
+https://m.ctrip.com
+› html5 › trains › beijing-shanghai/>
+[22]<img />
+[23]<div button;关于这条结果的详细信息/>
+携程手机版火车票预订为您提供北京到上海火车票查询服
+务，在这里你可以查询北京到上海火车票票价、火车票时刻表、动车票价、高铁票价和北京到上海火车票车次。
+[24]<a 北京到上海火车票预订与代购-高铁票价,动车票价 - 携程
+携程
+https://trains.ctrip.com
+› trainbooking › beijing-shanghai/>
+[25]<img />
+[26]<div button;关于这条结果的详细信息/>
+2025年03月14日携程旅行网为您查询到北京到上海车次信息，携程火车票为您提供方便的
+北京到上海火车票
+预订和北京到上海火车时刻表查询。
+[27]<a 北京到上海高铁票价查询
+高铁时刻表查询
+https://shike.gaotie.cn
+› lieche › from=北京 › to=上海/>
+[28]<img />
+[29]<div button;关于这条结果的详细信息/>
+车次, 订票, 出发站→到达站, 发时→到时, 里程, 运行时间, 票价参考(RMB元). G101 · 订票 ·
+北京
+南站→
+上海
+虹桥站, 06:10→12:09, 1318km, 5小时59分 ...
+[30]<a 中国铁路12306网站
+12306
+https://www.12306.cn/>
+[31]<img />
+[32]<div button;关于这条结果的详细信息/>
+中国铁路12306 ; “环西部
+火车
+游” 高品质旅游版专线列车. ¥2560 ; “环西部
+火车
+游” 陇上江南·行摄山>水陇南三日游. ¥930 ; “环西部
+火车
+游”华夏寻根·人文始祖天水两日游. ¥980 ; “ ...
+相关问题
+[33]<div button;关于这条结果的详细信息/>
+[34]<div button;false>北京到上海高铁票多少钱？/>
+[35]<div button;false>北京到上海火车多久？/>
+[36]<div button;false>上海到北京坐高铁需要多久？/>
+上海到北京的高鐵多少錢？
+[37]<div button>反馈/>
+[38]<a 北京到上海动车时刻表
+滴滴住宿
+http://dongche.ddzhusu.com
+› dc-北京-上海/>
+[39]<div button;关于这条结果的详细信息/>
+车次, 时刻, 车站, 票价. G103 高铁, 06:20 11:58 5小时38分钟,
+北京
+南 -
+上海
+虹桥, 商务座￥1873 二等座￥553 一等座￥930 · G1 高铁, 07:00 11:29 4小时29分钟,
+北京
+南
+[40]<a 北京至上海的列车
+Rail Ninja
+https://rail.ninja
+› route › beijing-to-shanghai/>
+[41]<img />
+[42]<div button;关于这条结果的详细信息/>
+列车拥有不同旅行档次供您选择，并且旅程时间较短（大概需要6 小时），每天拥有多达33个班次，时间分布较广泛。列车上配有各类优质设施，可在旅途中为您提供服务。从
+北京到上海
+的 ...
+8.3/10
+(54)
+[43]<a 北京到上海的火車票價只要NT$713 起
+Trip.com
+https://tw.trip.com
+› beijing-to-shanghai/>
+[44]<img />
+·
+[45]<a 转为简体网页/>
+[46]<div button;关于这条结果的详细信息/>
+... 1601 pixels below - scroll or extract content to see more ...
+Current step: 4/10Current date and time: 2025-03-13 09:40
+
+ RESPONSE
+{
+  "current_state": {
+    "evaluation_previous_goal": "Success - Clicked on the search suggestion for train tickets from Beijing to Shanghai.",
+    "memory": "Navigated to Google homepage, input search query, and clicked on the search suggestion. I have completed 3/10 steps.",
+    "next_goal": "Extract the train ticket information from the search results."
+  },
+  "action": [
+    {
+      "extract_content": {
+        "goal": "extract the train ticket information from Beijing to Shanghai"
+      }
+    }
+  ]
+}
