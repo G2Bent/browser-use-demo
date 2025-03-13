@@ -1,2 +1,2 @@
-# vant-autotest
-通过 AI 执行 web ui 自动化测试
+# browser-use demo project
+学习 browser-use 笔记。
